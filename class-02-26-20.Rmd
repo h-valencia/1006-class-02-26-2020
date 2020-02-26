@@ -77,10 +77,29 @@ nes$race_adj[nes$race_adj==1] <- "white"
 nes$race_adj[nes$race_adj==1.5] <- "other"
 nes$race_adj[nes$race_adj==2] <- "black"
 
-fit2 <- stan_glm(partyid7~race_adj, data = nes, refresh = 0)
+nes2 <- nes %>%
+  mutate(race = as.factor(case_when(race_adj == 1 ~ "white",
+                          race_adj == 2 ~ "black", 
+                          race_adj == 1.5 ~ "other")))
+
+fit2 <- stan_glm(partyid7~race_adj, data = nes2, refresh = 0)
 print(fit2)
 ```
 
+```{r}
+race <- nes2 %>%
+  mutate(predicted_party = predict(fit2, newdata = nes2)) %>%
+  mutate(diff_party = partyid7 - predicted_party)
+```
+
+```{r}
+quantile(race$diff_party, c(0.16, 0.84))
+```
+
+```{r}
+fit3 <- stan_glm(partyid7 ~ real_ideo, data = nes, refresh = 0)
+print(fit3)
+```
 
 
 
