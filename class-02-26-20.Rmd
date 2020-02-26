@@ -1,0 +1,92 @@
+---
+title: "class 02/26/20"
+author: "Hannah Valencia"
+date: "2/26/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(dplyr)
+library(tidyverse)
+```
+
+
+```{r}
+load("nes.rda")
+```
+
+```{r}
+nes <- nes %>%
+  select(year, partyid7, real_ideo, race_adj, age_discrete, educ1, female, income)
+```
+
+
+```{r}
+glimpse(nes)
+head(nes)
+sample_n(nes, 10)
+summary(nes)
+```
+```{r}
+nes <- nes %>%
+  as.tibble()
+```
+
+```{r}
+library(skimr)
+
+skim(nes)
+```
+
+```{r}
+nes <- nes %>%
+  drop_na()
+```
+
+```{r}
+library(rstanarm)
+
+fit <- stan_glm(partyid7 ~ female, data = nes, refresh = 0)
+print(fit)
+```
+
+```{r}
+nes1 <- nes %>%
+  mutate(gender = as.factor(ifelse(female == 1, "female", "non-female")))
+```
+
+```{r}
+fit1 <- stan_glm(partyid7 ~ gender, data = nes1, refresh = 0)
+print(fit1)
+```
+
+```{r}
+ideo <- nes1 %>%
+  mutate(predicted_ideo = predict(fit1, newdata = nes1)) %>%
+  mutate(resid_ideo = real_ideo - predicted_ideo)
+```
+
+```{r}
+quantile(ideo$resid_ideo, c(0.16, 0.84))
+```
+
+```{r}
+nes$race_adj[nes$race_adj==1] <- "white"
+nes$race_adj[nes$race_adj==1.5] <- "other"
+nes$race_adj[nes$race_adj==2] <- "black"
+
+fit2 <- stan_glm(partyid7~race_adj, data = nes, refresh = 0)
+print(fit2)
+```
+
+
+
+
+
+
+
+
+
+
